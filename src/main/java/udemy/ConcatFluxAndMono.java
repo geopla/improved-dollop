@@ -1,6 +1,6 @@
 package udemy;
 
-public class CombineFluxAndMono {
+public class ConcatFluxAndMono {
 
 //    Write the test case for explore_concatwith() and explore_concatwith_mono() methods in the FluxAndMonoGeneratorService class.
 //

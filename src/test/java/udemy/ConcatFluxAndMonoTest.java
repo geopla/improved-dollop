@@ -9,7 +9,7 @@ import reactor.test.StepVerifier;
 import java.util.Arrays;
 import java.util.List;
 
-class CombineFluxAndMonoTest {
+class ConcatFluxAndMonoTest {
 
 
     // --- Investigate some Mono and Flux concat methods
