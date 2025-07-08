@@ -15,7 +15,9 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -27,6 +29,65 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 class FluxAndMonoGeneratorServiceTest {
 
     FluxAndMonoGeneratorService service = new FluxAndMonoGeneratorService();
+
+    @Test
+    @DisplayName("Should zip Mono with other Mono")
+    void shouldMonoZipWith() {
+        StepVerifier.create(service.exploreMonoZipWith())
+                .expectNextMatches(t ->
+                        "A".equals(t.getT1()) && 1 == t.getT2())
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Should zip Mono with other Mono using a combinator")
+    void shouldMonoZipWithCombinator() {
+        StepVerifier.create(service.exploreMonoZipWithCombinator())
+                .expectNext("A-1")
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Should zip Flux with other Publisher")
+    void shouldFluxZipWith() {
+        StepVerifier.create(service.exploreFluxZipWith())
+                .consumeNextWith(assertTupleEquals("A", 1))
+                .consumeNextWith(assertTupleEquals("B", 2))
+                .verifyComplete();
+    }
+
+    Consumer<Tuple2<String, Integer>> assertTupleEquals(String expectedFirstValue, Integer expectedSecondValue) {
+        return tuple -> {
+            if (!Objects.equals(tuple.getT1(), expectedFirstValue) || !Objects.equals(tuple.getT2(), expectedSecondValue)) {
+                throw new AssertionError("failed on element %s".formatted(tuple.toString()));
+            }
+        };
+    }
+
+    @Test
+    @DisplayName("Should zip Flux with other Publisher using a combinator")
+    void shouldFluxZipWithCombinator() {
+        StepVerifier.create(service.exploreFluxZipWithCombinator())
+                .expectNext("A-1", "B-2")
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Should zip Flux with Iterable")
+    void shouldFluxZipWithIterable() {
+        StepVerifier.create(service.exploreFluxZipWithIterable())
+                .consumeNextWith(assertTupleEquals("A", 1))
+                .consumeNextWith(assertTupleEquals("B", 2))
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Should zip Flux with Iterable using a combinator")
+    void shouldFluxZipWithIterableCombinator() {
+        StepVerifier.create(service.exploreFluxZipWithIteratorCombinator())
+                .expectNext("A-1", "B-2")
+                .verifyComplete();
+    }
 
     @ParameterizedTest
     @MethodSource("concatWithPublisher")
