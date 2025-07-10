@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-class IdSplitterService {
+class SplitterService {
 
     record SplitterResult(
             boolean success,
@@ -22,7 +22,7 @@ class IdSplitterService {
 
     private final IdGenerator idGenerator;
 
-    IdSplitterService(IdGenerator idGenerator) {
+    SplitterService(IdGenerator idGenerator) {
         this.idGenerator = idGenerator;
     }
 
