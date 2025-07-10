@@ -14,6 +14,7 @@ class SplitterService {
 
     record SplitterResult(
             boolean success,
+            UUID uuid,
             String message
     ) {
     }
@@ -30,12 +31,17 @@ class SplitterService {
         return splitterResult.asFlux();
     }
 
-    Mono<Void> processNextId() {
+    Mono<UUID> processNextId() {
         return idGenerator.random()
                 .subscribeOn(Schedulers.boundedElastic())
-                .flatMap(uuid ->
-                        split(uuid)
-                                .flatMap(this::store)
+                .flatMap(this::splitStoreNotify);
+    }
+
+    private Mono<UUID> splitStoreNotify(UUID uuid) {
+        return split(uuid)
+                .flatMap(chars -> store(uuid, chars))
+                .doOnSuccess(storedUuid ->
+                        splitterResult.tryEmitNext(new SplitterResult(true, uuid, "stored successfully"))
                 );
     }
 
@@ -46,8 +52,8 @@ class SplitterService {
                 .map(delay -> Arrays.stream(uuid.toString().split("")).toList());
     }
 
-    private Mono<Void> store(List<String> uuidCharacters) {
-        // TODO add a delay because insert to the database takes time too?
-        return Mono.empty();
+    private Mono<UUID> store(UUID uuid, List<String> uuidCharacters) {
+        // no delay, just do it like a reactive database
+        return KeyValueStore.store(uuid, uuidCharacters);
     }
 }

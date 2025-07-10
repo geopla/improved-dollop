@@ -75,4 +75,27 @@ sequenceDiagram
   ReportService -->> Alice: buy shoes
 ```
 
-### How to implement, problems, questions
+### How to implement, solutions, problems, questions
+
+#### Testing that an event has been published
+Piece of cake:
+- use `StepVerifier.create()` on the Flux (Sink) to listen too
+- trigger event emitting by subscribing in `.then()` `Runnable`
+- expect the event
+- cancek the subscription with `thenCancel()`
+- and `verify()`
+
+Looks like the following, taken from `SplitterService`
+````
+StepVerifier.create(splitterService.splitterResult())
+                .then(() -> splitterService.processNextId().subscribe())
+                .expectNextMatches(p -> p.uuid().equals(THE_UUID))
+                .thenCancel()
+                .verify();
+````
+
+#### How to organize the Sink's
+Can't evaluate that on the sample project. Having dependency injection this
+might be resolved in a different way. For now, just
+- create a Sink in the service emitting values
+- use the `Sink.Many.asFlux()` to provide them to the consumer

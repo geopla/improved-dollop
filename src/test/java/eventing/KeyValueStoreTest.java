@@ -1,6 +1,5 @@
 package eventing;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import reactor.test.StepVerifier;
@@ -22,6 +21,16 @@ class KeyValueStoreTest {
         var uuidCharacters = KeyValueStore.retrieve(THE_UUID).block();
 
         assertThat(uuidCharacters).startsWith("7", "1", "6", "d");
+    }
+
+    @Test
+    @DisplayName("Should act reactive by returning a Mono on store (like reactive MongoDB insert)")
+    void shouldStoreWithReturingUuid() {
+        var uuid = UUID.randomUUID();
+
+        var storedUuid = KeyValueStore.store(uuid, List.of(uuid.toString().split(""))).block();
+
+        assertThat(storedUuid).isEqualTo(uuid);
     }
 
     @Test
