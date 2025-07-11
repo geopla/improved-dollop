@@ -1,14 +1,7 @@
 # Reactive Stuff
 
-## Links
-- [Unraveling Project Reactor](https://eherrera.net/project-reactor-course/)
-- [Project Reactor](https://projectreactor.io/)
-- [Reactive Streams](https://www.reactive-streams.org/)
-  - [Textual Description](https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.4/README.md#specification)
-  - [API](https://www.reactive-streams.org/reactive-streams-1.0.4-javadoc/org/reactivestreams/package-summary.html)
-- [Intellij Reactive Blog](https://blog.jetbrains.com/idea/2023/06/reactive-programming-made-easy/)
 
-## System with serveral asynchronous services
+## System with several asynchronous services
 The challenge is how to connect reactive services with long-running tasks. The option we started
 is to interconnect all the services in a single reactive pipeline. As it may work, it has some
 serious disadvantages:
