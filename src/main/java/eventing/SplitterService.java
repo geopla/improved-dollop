@@ -12,7 +12,7 @@ import java.util.UUID;
 
 class SplitterService {
 
-    record SplitterResult(
+    public record SplitterResult(
             boolean success,
             UUID uuid,
             String message
@@ -46,14 +46,14 @@ class SplitterService {
     }
 
     private Mono<List<String>> split(UUID uuid) {
-        // introduce delay because processing the data is a long-running task
+        // introduce delay simulating is a long-running task
         return Mono
                 .delay(Duration.ofMillis(500))
                 .map(delay -> Arrays.stream(uuid.toString().split("")).toList());
     }
 
     private Mono<UUID> store(UUID uuid, List<String> uuidCharacters) {
-        // no delay, just do it like a reactive database
+        // no delay, just mimic a reactive database
         return KeyValueStore.store(uuid, uuidCharacters);
     }
 }

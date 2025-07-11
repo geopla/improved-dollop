@@ -1,5 +1,8 @@
 # Reactive Stuff
-
+This project is just a playground to get proficient with reactive systems. The goal is to investigate
+reactive software architecture by building a system with simple business logic only. Focus is on how
+to organize and test such a system. Starting a s simple as possible. A follow-up project will examine
+the subject on a Spring Boot project. 
 
 ## System with several asynchronous services
 The challenge is how to connect reactive services with long-running tasks. The option we started
@@ -22,7 +25,7 @@ Let us implement a playground system to investigate how to implement an event ba
 - **process outcome**: Needs to be tracked, either in case of success or if any intermediate service fails
 - **observabilty**: Influence on monitoring (tracing) when implement it in a modulith way
 
-### The example system requirement(s)
+### The example system requirements
 As written by a typical customer, the requiremets are as follows:
 - when triggered by Alice the system should compute a new randomly computed reward for Alice the follwing way
   - a UUID will be generated internally
@@ -40,7 +43,7 @@ As written by a typical customer, the requiremets are as follows:
 
 ### The example system
 As designed by a typical software engineer there will be no documentation other than the code. But at least we sketched
-kinda control flow. A sequence diagram seems not to be the best option to describe an event based system. Anyway, it shows
+kinda control flow. A sequence diagram might not be the best option to describe an event based system. Anyway, it shows
 the typical fire and forget control flow for such a system. When triggered by receiving an event (or direct invocation at start),
 each service does some work. When finished, it sends an event to anybody interested in.
 
@@ -92,3 +95,15 @@ Can't evaluate that on the sample project. Having dependency injection this
 might be resolved in a different way. For now, just
 - create a Sink in the service emitting values
 - use the `Sink.Many.asFlux()` to provide them to the consumer
+
+#### Testing an 'inner' service
+An **inner service** is one that can be triggered only by an event from a Flux the service subscribes to.
+The subscribed consumer can be tested only by watching its behavior from the outside. The consumer needs
+to generate an event when executing successfully.
+
+TODO How to deal with exceptions thrown within the consumer?
+
+##### Testing that a service subscribes to a publisher
+The scenario: A publisher (Flux) is passed in the service constructor. How to test that the service subscribes to
+that publisher? Looks like that can't be done with the `StepVerifier`? The only way to check the subscription seems
+to be using a mocked publisher instead?
