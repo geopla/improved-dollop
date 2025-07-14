@@ -66,7 +66,7 @@ class DigitServiceTest {
     void shouldFilterDigitsFromCharacters() {
         List<String> chars = List.of(THE_UUID_STRING.split(""));
 
-        List<Integer> digits = DigitService.filterDigitsFrom(chars);
+        List<Integer> digits = DigitService.filterDigits(chars);
 
         assertThat(digits).containsExactly(
                 7, 1, 6, 0,
@@ -81,6 +81,6 @@ class DigitServiceTest {
     void shouldFilterToEmptyList() {
         List<String> chars = List.of("abc-def".split(""));
 
-        assertThat(DigitService.filterDigitsFrom(chars)).isEmpty();
+        assertThat(DigitService.filterDigits(chars)).isEmpty();
     }
 }

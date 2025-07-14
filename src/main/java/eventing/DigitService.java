@@ -12,13 +12,6 @@ import java.util.function.Function;
 
 public class DigitService {
 
-    private static List<Integer> filterDigits(List<String> list) {
-        return list.stream()
-                .filter(s -> s.length() == 1 && Character.isDigit(s.charAt(0)))
-                .map(Integer::valueOf)
-                .toList();
-    }
-
     public record DigitResult(
         UUID uuid,
         List<Integer> digits
@@ -43,15 +36,15 @@ public class DigitService {
                 .subscribe(digitResults::tryEmitNext);
     };
 
-    static Function<List<Integer>, DigitResult> createResultEvent(UUID uuid) {
-        return digits -> new DigitResult(uuid, digits);
-    }
-
-    static List<Integer> filterDigitsFrom(List<String> chars) {
-        return chars.stream()
-                .filter(c -> Character.isDigit(c.codePointAt(0)))
+    static List<Integer> filterDigits(List<String> list) {
+        return list.stream()
+                .filter(s -> Character.isDigit(s.charAt(0)))
                 .map(Integer::valueOf)
                 .toList();
+    }
+
+    static Function<List<Integer>, DigitResult> createResultEvent(UUID uuid) {
+        return digits -> new DigitResult(uuid, digits);
     }
 
     public Flux<DigitResult> digitResults() {
