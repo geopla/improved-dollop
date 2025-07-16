@@ -1,29 +1,46 @@
 # Reactive Stuff
-This project is just a playground to get proficient with reactive systems. The goal is to investigate
-reactive software architecture by building a system with simple business logic only. Focus is on how
-to organize and test such a system. Starting a s simple as possible. A follow-up project will examine
-the subject on a Spring Boot project. 
+This project is just a playground to gain experience with reactive systems. The goal is to investigate
+reactive software architecture by building a system with simple business logic only. The relevant aspects:
+- organization
+  - who is responsible for creating the 'event bus'
+  - which message types to be used
+- testing the system logic
 
-## System with several asynchronous services
-The challenge is how to connect reactive services with long-running tasks. The option we started
-is to interconnect all the services in a single reactive pipeline. As it may work, it has some
-serious disadvantages:
-- an equivalent to a god class is created - a god pipeline
-  - violates single responsibility principle
-  - violates open closed principle
+## Motivation / The Problem
+A project we work on implements the equivalent to a god class, a god pipeline. Asynchronous services that depend on each
+other are organized all in a single reactive pipeline. This has some disadvantages:
+- violates single responsibility principle
+- violates open closed principle (not extensible easily)
 - tight coupling
 - testing is a nightmare
 - error handling gets messy
 
-Due to the nature of the system consisting of asynchronous services, an event driven software architecture
-seem to be appropriate. By using a reactive framework, have messaging support is already available. Project
-Reactor implements that by Sink's. But implementing a system that way has its own quirks.
+## Solution (Idea)
+Using Project Reactor, messaging support is already on board. No messaging infrastructure is required.
+The magic word is [Sink](https://projectreactor.io/docs/core/release/reference/coreFeatures/sinks.html)
 
-Let us implement a playground system to investigate how to implement an event based system with the following in mind:
-- **flatMap scenario**: there will be tightly coupled services `A` and `B` where service `B` 'waits' for a value to be produced by service 'A'
-- **event scenario**: Services `A` and `B` are independent with `B` waiting for a system state change caused by `A`
-- **process outcome**: Needs to be tracked, either in case of success or if any intermediate service fails
-- **observabilty**: Influence on monitoring (tracing) when implement it in a modulith way
+## Concepts / Setting the Stage
+We will examine two different couplings of services `A` and `B`.
+
+### Flat Map Scenario
+Service `B` needs some data from `A` as a precondition. `B` will remain in the same pipeline with `A`, therefore termed
+the 'flat map scenario', though it might be implemented in other ways than using `flatMap()`. The data flows within
+the pipeline. Execution of both services is managed by the pipeline.
+
+To be applied when:
+- services are tightly coupled at the business level
+- `A` is quite a fast service, e.g. fetching the data through a REST API
+- `B` is the only service consuming data from `A`
+
+### Event Scenario
+Service `B` needs to wait for `A` to transform the whole system state. `A` emits a signal about its progress to anybody
+interested - in our case `B` will subscribe to such an event. `A` and `B` don't run in the same pipeline. Data may flow
+within the event submitted by `A` or just extracting the data from the system by service `B`.
+
+To be applied when
+- services are loosely coupled at the business level
+- 'A' is a long-running service, e.g. a batch process
+- other services than `B` might be interested in `A` signalling its progress
 
 ### The example system requirements
 As written by a typical customer, the requiremets are as follows:
@@ -44,7 +61,7 @@ As written by a typical customer, the requiremets are as follows:
 ### The example system
 As designed by a typical software engineer there will be no documentation other than the code. But at least we sketched
 kinda control flow. A sequence diagram might not be the best option to describe an event based system. Anyway, it shows
-the typical fire and forget control flow for such a system. When triggered by receiving an event (or direct invocation at start),
+the fire and forget control flow of such a system. When triggered by receiving an event (or direct invocation at start),
 each service does some work. When finished, it sends an event to anybody interested in.
 
 ```mermaid
@@ -89,21 +106,25 @@ StepVerifier.create(splitterService.splitterResult())
                 .thenCancel()
                 .verify();
 ````
-
 #### How to organize the Sink's
 Can't evaluate that on the sample project. Having dependency injection this
 might be resolved in a different way. For now, just
 - create a Sink in the service emitting values
 - use the `Sink.Many.asFlux()` to provide them to the consumer
 
-#### Testing an 'inner' service
-An **inner service** is one that can be triggered only by an event from a Flux the service subscribes to.
-The subscribed consumer can be tested only by watching its behavior from the outside. The consumer needs
-to generate an event when executing successfully.
+#### Testing a service in the event scenario
+Assume the business logic has been tested already. We are interested only in a black box test:
+- set up the system into a state the service expects - usually a database
+- create a `Sink` and the event to be emitted by that `Sink`
+- create the service under test, passing the `Sink` as a (incoming) `Flux`
+- emit the event
+- subscribe the `StepVerifier` to the service outgoing `Flux`, expect, cancel and verify
 
-TODO How to deal with exceptions thrown within the consumer?
+#### Testing that a service subscribes to a publisher
+Can't be done with the `StepVerifier` - at least I didn't succeed. A working trick is to use the
+`doOnSubscribe()` method passing a consumer causing a side effect. Then just assert that one.
 
-##### Testing that a service subscribes to a publisher
-The scenario: A publisher (Flux) is passed in the service constructor. How to test that the service subscribes to
-that publisher? Looks like that can't be done with the `StepVerifier`? The only way to check the subscription seems
-to be using a mocked publisher instead?
+#### TODOs
+- get a better understanding of `Sink` types and how to use them
+- dig into error handling
+- investigate deadlocks (is it possible like in the flatMap scenario with buffering schedulers?)
