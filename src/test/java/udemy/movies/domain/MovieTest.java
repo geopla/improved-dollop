@@ -12,17 +12,19 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 class MovieTest {
 
+    MovieInfo movieInfo;
     Movie movie;
 
     @BeforeEach
     void setUp() {
-        movie = new Movie(new MovieInfo(
+        movieInfo = new MovieInfo(
                 42,
                 "The Big Lebowski",
                 List.of("John Goodman", "Jeff Bridges", "Steve Buscemi"),
                 1998,
                 LocalDate.of(1998, 3, 6)
-        ));
+        );
+        movie = new Movie(movieInfo);
     }
 
     @Test
