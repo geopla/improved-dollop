@@ -3,11 +3,13 @@ package udemy.movies.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Signal;
 import reactor.test.StepVerifier;
 import udemy.movies.domain.Movie;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 class MovieServiceReactiveTest {
 
@@ -62,4 +64,30 @@ class MovieServiceReactiveTest {
                 .expectNextMatches(movie -> movie.info().name().equals("The Dark Knight"))
                 .verifyComplete();
     }
+
+    @Test
+    @DisplayName("Should do something with doOnEach()")
+    void shouldDoSomethingWithDoOnEach() {
+        var moviesWithSideEffect = movieService.allMovies()
+                .doOnEach(signalConsumer);
+
+        StepVerifier.create(moviesWithSideEffect)
+                .expectNextCount(3)
+                .verifyComplete();
+    }
+
+    Consumer<Signal<Movie>> signalConsumer = movieSignal -> {
+        switch (movieSignal.getType()) {
+            case SUBSCRIBE -> System.out.println("subscribe");
+            case REQUEST -> System.out.println("request");
+            case CANCEL -> System.out.println("cancel");
+            case ON_SUBSCRIBE -> System.out.println("onSubscribe");
+            case ON_NEXT -> System.out.println("onNext");
+            case ON_ERROR -> System.out.println("onError");
+            case ON_COMPLETE -> System.out.println("onComplete");
+            case AFTER_TERMINATE -> System.out.println("afterTerminate");
+            case CURRENT_CONTEXT -> System.out.println("currentContext");
+            case ON_CONTEXT -> System.out.println("oneContext");
+        }
+    };
 }
