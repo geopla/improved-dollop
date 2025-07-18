@@ -42,4 +42,24 @@ class MovieServiceReactiveTest {
                 })
                 .verifyComplete();
     }
+
+    @Test
+    @DisplayName("Should deliver a movie by id")
+    void shouldDeliverMovieById() {
+        var movieIdTheDarkKnight = 101;
+
+        StepVerifier.create(movieService.movieById(movieIdTheDarkKnight))
+                .expectNextMatches(movie -> movie.info().name().equals("The Dark Knight"))
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Should deliver a movie by id implemented by zipping")
+    void shouldDeliverMovieByIdZipImplemented() {
+        var movieIdTheDarkKnight = 101;
+
+        StepVerifier.create(movieService.movieByIdZipImplemented(movieIdTheDarkKnight))
+                .expectNextMatches(movie -> movie.info().name().equals("The Dark Knight"))
+                .verifyComplete();
+    }
 }
