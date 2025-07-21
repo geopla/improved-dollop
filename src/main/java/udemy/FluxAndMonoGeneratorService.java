@@ -7,7 +7,9 @@ import reactor.util.function.Tuple2;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static reactor.core.publisher.Flux.just;
@@ -45,6 +47,26 @@ class FluxAndMonoGeneratorService {
     }
 
     Predicate<Throwable> illegalArgumentX = t -> "X".equals(t.getMessage());
+
+    Flux<String> exploreOnErrorResume() {
+        return Flux.just("A", "B", "C")
+                .concatWith(Flux.error(new NoSuchElementException("X")))
+                .onErrorResume(withFallbackIgnoringAnyException);
+    }
+
+    Function<Throwable, Flux<String>> withFallbackIgnoringAnyException =
+            t -> Flux.just("D", "E");
+
+
+    Flux<String> exploreOnErrorResumeWithSelectedFallback() {
+        return Flux.just("A", "B", "C")
+                .concatWith(Flux.error(new NoSuchElementException("X")))
+                .onErrorResume(selectedFallback);
+    }
+
+    Function<Throwable, Flux<String>> selectedFallback = t -> {
+        return "X".equals(t.getMessage()) ? Flux.just("X", "Y") : Flux.just("D", "E");
+    };
 
     Mono<Tuple2<String, Integer>> exploreMonoZipWith() {
         var first = Mono.just("A");

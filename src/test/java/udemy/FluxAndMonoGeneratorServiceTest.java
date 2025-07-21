@@ -33,6 +33,8 @@ class FluxAndMonoGeneratorServiceTest {
     String[] successfulValues = { "A", "B", "C"};
     String defaultValue = "D";
     String recoveredFromExceptionValue = "recovered from illegal argument";
+    String[] resumedValues = { "D", "E"};
+    String[] resumedValuesFromX = { "X", "Y"};
 
     @Test
     @DisplayName("Should recover from exception with default value")
@@ -77,6 +79,24 @@ class FluxAndMonoGeneratorServiceTest {
                 .expectNext(successfulValues)
                 .expectError(IllegalArgumentException.class)
                 .verify();
+    }
+
+    @Test
+    @DisplayName("Should resume with values from a fallback publisher")
+    void shouldResumeOnAnyException() {
+        StepVerifier.create(service.exploreOnErrorResume())
+                .expectNext(successfulValues)
+                .expectNext(resumedValues)
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Should resume with selected fallback publisher")
+    void shouldSelectFallbackPublisher() {
+        StepVerifier.create(service.exploreOnErrorResumeWithSelectedFallback())
+                .expectNext(successfulValues)
+                .expectNext(resumedValuesFromX)
+                .verifyComplete();
     }
 
     @Test
