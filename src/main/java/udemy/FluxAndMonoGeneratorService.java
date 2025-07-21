@@ -8,10 +8,43 @@ import reactor.util.function.Tuple2;
 import java.time.Duration;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Predicate;
 
 import static reactor.core.publisher.Flux.just;
 
-public class FluxAndMonoGeneratorService {
+class FluxAndMonoGeneratorService {
+
+    Flux<String> exploreOnErrorReturn() {
+        return Flux.just("A", "B", "C")
+                .concatWith(Flux.error(new IllegalArgumentException("X")))
+                .onErrorReturn("D");
+    }
+
+    Flux<String> exploreOnErrorReturnOnExceptionType() {
+        return Flux.just("A", "B", "C")
+                .concatWith(Flux.error(new IllegalArgumentException("X")))
+                .onErrorReturn(IllegalArgumentException.class, "recovered from illegal argument");
+    }
+
+    Flux<String> exploreOnErrorReturnOnExceptionTypeNotHandled() {
+        return Flux.just("A", "B", "C")
+                .concatWith(Flux.error(new IllegalStateException("X")))
+                .onErrorReturn(IllegalArgumentException.class, "recovered from illegal argument");
+    }
+
+    Flux<String> exploreOnErrorReturnOnExceptionPredicate() {
+        return Flux.just("A", "B", "C")
+                .concatWith(Flux.error(new IllegalArgumentException("X")))
+                .onErrorReturn(illegalArgumentX, "recovered from illegal argument");
+    }
+
+    Flux<String> exploreOnErrorReturnOnExceptionPredicateNotHandled() {
+        return Flux.just("A", "B", "C")
+                .concatWith(Flux.error(new IllegalArgumentException("#")))
+                .onErrorReturn(illegalArgumentX, "recovered from illegal argument");
+    }
+
+    Predicate<Throwable> illegalArgumentX = t -> "X".equals(t.getMessage());
 
     Mono<Tuple2<String, Integer>> exploreMonoZipWith() {
         var first = Mono.just("A");

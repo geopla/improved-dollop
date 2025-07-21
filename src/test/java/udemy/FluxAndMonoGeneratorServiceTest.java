@@ -30,6 +30,55 @@ class FluxAndMonoGeneratorServiceTest {
 
     FluxAndMonoGeneratorService service = new FluxAndMonoGeneratorService();
 
+    String[] successfulValues = { "A", "B", "C"};
+    String defaultValue = "D";
+    String recoveredFromExceptionValue = "recovered from illegal argument";
+
+    @Test
+    @DisplayName("Should recover from exception with default value")
+    void shouldRecoverFromExceptionWithDefaultValue() {
+        StepVerifier.create(service.exploreOnErrorReturn())
+                .expectNext(successfulValues)
+                .expectNext(defaultValue)
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Should recover from certain exception type with a default value")
+    void shouldRecoverFromIllegalArgumentException() {
+        StepVerifier.create(service.exploreOnErrorReturnOnExceptionType())
+                .expectNext(successfulValues)
+                .expectNext(recoveredFromExceptionValue)
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Should emit an error when exception cant be handled due to exception type")
+    void shouldEmitErrorWhenExceptionCannotBeHandled() {
+        StepVerifier.create(service.exploreOnErrorReturnOnExceptionTypeNotHandled())
+                .expectNext(successfulValues)
+                .expectError(IllegalStateException.class)
+                .verify();
+    }
+
+    @Test
+    @DisplayName("Should recover from certain exception matching a predicate")
+    void shouldShouldRecoverFromExceptionWithPredicateMatch() {
+        StepVerifier.create(service.exploreOnErrorReturnOnExceptionPredicate())
+                .expectNext(successfulValues)
+                .expectNext(recoveredFromExceptionValue)
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Should emit an error when exception can't be handled due to predicate")
+    void shouldEmitAnErrorWhenExceptionCannotBeHandledDueToPredicate() {
+        StepVerifier.create(service.exploreOnErrorReturnOnExceptionPredicateNotHandled())
+                .expectNext(successfulValues)
+                .expectError(IllegalArgumentException.class)
+                .verify();
+    }
+
     @Test
     @DisplayName("Should zip Mono with other Mono")
     void shouldMonoZipWith() {
