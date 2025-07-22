@@ -16,6 +16,52 @@ import static reactor.core.publisher.Flux.just;
 
 class FluxAndMonoGeneratorService {
 
+
+    public Mono<String> exploreMonoOnErrorReturn(String allButX) {
+        return Mono.just(allButX)
+                .map(v -> {
+                    if ("X".equals(v)) {
+                        throw new IllegalArgumentException("X");
+                    }
+                    else {
+                        return v;
+                    }
+                })
+                .onErrorReturn("q")
+                .map(String::toUpperCase);
+    }
+
+    Flux<String> exploreSkippingErrors() {
+        Flux<Mono<String>> flux = Flux.just(
+                Mono.just("A").delayElement(Duration.ofMillis(10)), // Schnell
+                Mono.just("B").delayElement(Duration.ofMillis(20)), // Schnell
+                Mono.<String>error(new IllegalArgumentException("X")).delaySubscription(Duration.ofMillis(50)), // Fehler nach "a" und "b"
+                Mono.just("C").delayElement(Duration.ofMillis(100)) // Nach dem Fehler
+        );
+
+        // fix publisher errors at the source - not always possible
+        return flux
+                .flatMap(ms -> ms
+                        .onErrorResume(e -> Mono.empty())
+                );
+    }
+
+    Flux<String> exploreSkippingErrorsWithContinue() {
+        Flux<Mono<String>> flux = Flux.just(
+                Mono.just("A").delayElement(Duration.ofMillis(10)), // Schnell
+                Mono.just("B").delayElement(Duration.ofMillis(20)), // Schnell
+                Mono.<String>error(new IllegalArgumentException("X")).delaySubscription(Duration.ofMillis(50)), // Fehler nach "a" und "b"
+                Mono.just("C").delayElement(Duration.ofMillis(100)) // Nach dem Fehler
+        );
+
+        // jump over error elements
+        return flux
+                .flatMap(ms -> ms)
+                .onErrorContinue((throwable, obj) -> {
+                    System.out.println(obj);
+                });
+    }
+
     Flux<String> exploreOnErrorReturn() {
         return Flux.just("A", "B", "C")
                 .concatWith(Flux.error(new IllegalArgumentException("X")))

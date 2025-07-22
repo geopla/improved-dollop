@@ -4,6 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
@@ -29,6 +30,18 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 class FluxAndMonoGeneratorServiceTest {
 
     FluxAndMonoGeneratorService service = new FluxAndMonoGeneratorService();
+
+    @ParameterizedTest
+    @CsvSource({
+            "'a', 'A'",
+            "'X', 'Q'"
+    })
+    @DisplayName("Should return a default when a Mono pipeline throws an exception")
+    void shouldExploreMonoOnErrorReturn(String allButX, String expectedResult) {
+        StepVerifier.create(service.exploreMonoOnErrorReturn(allButX))
+                .expectNext(expectedResult)
+                .verifyComplete();
+    }
 
     String[] successfulValues = { "A", "B", "C"};
     String defaultValue = "D";
@@ -96,6 +109,22 @@ class FluxAndMonoGeneratorServiceTest {
         StepVerifier.create(service.exploreOnErrorResumeWithSelectedFallback())
                 .expectNext(successfulValues)
                 .expectNext(resumedValuesFromX)
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Should skip publishers emitting an error")
+    void shouldExploreSkippingErrors() {
+        StepVerifier.create(service.exploreSkippingErrors().log())
+                .expectNext(successfulValues)
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Should skip errors emitted from upstream")
+    void shouldExploreSkippingErrorsWithContinue() {
+        StepVerifier.create(service.exploreSkippingErrorsWithContinue().log())
+                .expectNext(successfulValues)
                 .verifyComplete();
     }
 
