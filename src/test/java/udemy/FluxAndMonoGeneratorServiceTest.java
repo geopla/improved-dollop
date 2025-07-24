@@ -31,6 +31,66 @@ class FluxAndMonoGeneratorServiceTest {
 
     FluxAndMonoGeneratorService service = new FluxAndMonoGeneratorService();
 
+
+    @Test
+    @DisplayName("Should complete immediate on input 'abc'")
+    void shouldDoAbc() {
+        StepVerifier.create(service.exception_mono_onErrorContinue("abc"))
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Should emit 'reactor'")
+    void shouldDoReactor() {
+        StepVerifier.create(service.exception_mono_onErrorContinue("reactor"))
+                .expectNext("reactor")
+                .verifyComplete();
+    }
+
+
+    @Test
+    @DisplayName("Should ")
+    void shouldDoSomehting() {
+        StepVerifier.create(service.monoErrorHandling())
+                .verifyError(RuntimeException.class);
+    }
+
+    @Test
+    @DisplayName("Should play around with handle(value, sink)")
+    void shouldPlayAroundWithHandle() {
+        StepVerifier.create(service.monoErrorHandlingTheBetterWay())
+                .verifyError(RuntimeException.class);
+    }
+
+
+
+
+
+
+    @Test
+    @DisplayName("Should upcast exception")
+    void shouldUpcastException() {
+        StepVerifier.create(service.exploreMonoOnErrorMap())
+                .expectErrorMatches(t ->
+                        t instanceof IllegalArgumentException
+                        && !(t instanceof NumberFormatException)
+                        && t.getMessage().contains("damn")
+                )
+                .verify();
+    }
+
+    @Test
+    @DisplayName("Should upcast exception")
+    void shouldUpcastExceptionByType() {
+        StepVerifier.create(service.exploreMonoErrorMapWithType())
+                .expectErrorMatches(t ->
+                        t instanceof IllegalArgumentException
+                        && !(t instanceof NumberFormatException)
+                        && t.getMessage().contains("umph")
+                )
+                .verify();
+    }
+
     @ParameterizedTest
     @CsvSource({
             "'a', 'A'",
@@ -43,11 +103,11 @@ class FluxAndMonoGeneratorServiceTest {
                 .verifyComplete();
     }
 
-    String[] successfulValues = { "A", "B", "C"};
+    String[] successfulValues = {"A", "B", "C"};
     String defaultValue = "D";
     String recoveredFromExceptionValue = "recovered from illegal argument";
-    String[] resumedValues = { "D", "E"};
-    String[] resumedValuesFromX = { "X", "Y"};
+    String[] resumedValues = {"D", "E"};
+    String[] resumedValuesFromX = {"X", "Y"};
 
     @Test
     @DisplayName("Should recover from exception with default value")
@@ -349,7 +409,7 @@ class FluxAndMonoGeneratorServiceTest {
         Function<Integer, Mono<? extends Boolean>> rightGenerator = answer -> Mono.just(answer == 42);
 
         BiFunction<Integer, Boolean, String> combinator = (answer, ok) ->
-                ok  ? "%d is the answer".formatted(answer) : "try another answer";
+                ok ? "%d is the answer".formatted(answer) : "try another answer";
 
         StepVerifier.create(key.zipWhen(rightGenerator, combinator))
                 .expectNext("42 is the answer")
