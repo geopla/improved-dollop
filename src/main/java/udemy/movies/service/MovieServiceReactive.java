@@ -1,11 +1,15 @@
 package udemy.movies.service;
 
+import reactor.core.Exceptions;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 import udemy.movies.domain.Movie;
+import udemy.movies.domain.MovieException;
 import udemy.movies.domain.MovieInfo;
 import udemy.movies.domain.Review;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -22,7 +26,19 @@ public class MovieServiceReactive {
 
     public Flux<Movie> allMovies() {
         return movieInfoService.movieInfos()
-                .flatMap(this::movieMapper);
+                .flatMap(this::movieMapper)
+                .onErrorMap(MovieServiceReactive::toMovieException)
+                .retryWhen(fixedDelayThrowingOriginalException(2, Duration.ofMillis(100)));
+    }
+
+    private static Throwable toMovieException(Throwable t) {
+        return new MovieException(t.getMessage());
+    }
+
+    private Retry fixedDelayThrowingOriginalException(int maxAttempts, Duration fixedDelay) {
+        return Retry.fixedDelay(maxAttempts, fixedDelay)
+                .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) ->
+                        Exceptions.propagate(retrySignal.failure()));
     }
 
     public Mono<Movie> movieById(long id) {
