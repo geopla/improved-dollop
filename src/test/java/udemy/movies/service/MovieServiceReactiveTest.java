@@ -10,6 +10,7 @@ import reactor.core.publisher.Signal;
 import reactor.test.StepVerifier;
 import udemy.movies.domain.Movie;
 import udemy.movies.domain.MovieException;
+import udemy.movies.domain.Revenue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,11 +29,14 @@ class MovieServiceReactiveTest {
     @Mock
     ReviewService reviewServiceMock;
 
+    RevenueService revenueService;
+
     @BeforeEach
     void setUp() {
         movieService = new MovieServiceReactive(
                 new MovieInfoService(),
-                new ReviewService()
+                new ReviewService(),
+                new RevenueService()
         );
     }
 
@@ -85,7 +89,8 @@ class MovieServiceReactiveTest {
 
         var service = new MovieServiceReactive(
                 new MovieInfoService(),
-                reviewServiceMock
+                reviewServiceMock,
+                new RevenueService()
         );
 
         StepVerifier.create(service.allMovies())
@@ -99,7 +104,8 @@ class MovieServiceReactiveTest {
 
         var service = new MovieServiceReactive(
                 new MovieInfoService(),
-                reviewServiceMock
+                reviewServiceMock,
+                new RevenueService()
         );
 
         StepVerifier.create(service.allMovies())
@@ -115,11 +121,26 @@ class MovieServiceReactiveTest {
 
         var service = new MovieServiceReactive(
                 new MovieInfoService(),
-                reviewServiceMock
+                reviewServiceMock,
+                new RevenueService()
         );
 
         StepVerifier.create(service.allMovies())
                 .verifyError(MovieException.class);
+    }
+
+    @Test
+    @DisplayName("Should deliver a movie with revenue")
+    void shouldDeliverMovieWithRevenue() {
+        var movieIdTheDarkKnight = 101;
+        var expectedRevenue = new Revenue(101, 1_000_000, 5_000_000);
+
+        StepVerifier.create(movieService.movieByIdWithRevenue(movieIdTheDarkKnight))
+                .expectNextMatches(movie ->
+                        movie.info().name().equals("The Dark Knight")
+                    && movie.revenue().equals(expectedRevenue)
+                )
+                .verifyComplete();
     }
 
     @Test

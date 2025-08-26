@@ -4,10 +4,7 @@ import reactor.core.Exceptions;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
-import udemy.movies.domain.Movie;
-import udemy.movies.domain.MovieException;
-import udemy.movies.domain.MovieInfo;
-import udemy.movies.domain.Review;
+import udemy.movies.domain.*;
 
 import java.time.Duration;
 import java.util.List;
@@ -18,10 +15,12 @@ public class MovieServiceReactive {
 
     private final MovieInfoService movieInfoService;
     private final ReviewService reviewService;
+    private final RevenueService revenueService;
 
-    public MovieServiceReactive(MovieInfoService movieInfoService, ReviewService reviewService) {
+    public MovieServiceReactive(MovieInfoService movieInfoService, ReviewService reviewService, RevenueService revenueService) {
         this.movieInfoService = movieInfoService;
         this.reviewService = reviewService;
+        this.revenueService = revenueService;
     }
 
     public Flux<Movie> allMovies() {
@@ -46,12 +45,12 @@ public class MovieServiceReactive {
                 .flatMap(this::movieMapper);
     }
 
-    private Mono<Movie> movieMapper(MovieInfo movieInfo) {
+    Mono<Movie> movieMapper(MovieInfo movieInfo) {
         return reviewService.allReviews(movieInfo.id())
                 .map(toMovie(movieInfo));
     }
 
-    private static Function<List<Review>, Movie> toMovie(MovieInfo movieInfo) {
+    static Function<List<Review>, Movie> toMovie(MovieInfo movieInfo) {
         return reviewList -> new Movie(movieInfo, reviewList);
     }
 
@@ -60,5 +59,19 @@ public class MovieServiceReactive {
                 .zipWith(reviewService.allReviews(id), movieCombinator);
     }
 
-    private final BiFunction<MovieInfo, List<Review>, Movie> movieCombinator = Movie::new;
+    final BiFunction<MovieInfo, List<Review>, Movie> movieCombinator = Movie::new;
+
+    public Mono<Movie> movieByIdWithRevenue(long id) {
+        return movieInfoService.movieInfo(id)
+                .flatMap(movieInfo -> {
+                    Mono<List<Review>> reviewsMono = reviewService.allReviews(id);
+                    Mono<Revenue> revenueMono = revenueService.revenueMono(id);
+
+                    return reviewsMono.zipWith(revenueMono, toMovieWithRevenue(movieInfo));
+                });
+    }
+
+    static BiFunction<List<Review>, Revenue, Movie> toMovieWithRevenue(MovieInfo movieInfo) {
+        return ((reviewList, revenue) -> new Movie(movieInfo, reviewList, revenue));
+    }
 }
