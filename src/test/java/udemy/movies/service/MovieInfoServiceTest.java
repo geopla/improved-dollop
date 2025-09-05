@@ -30,9 +30,7 @@ class MovieInfoServiceTest {
     @Test
     @DisplayName("Should deliver an existing movie info")
     void shouldDeliverExistingMovieInfo() {
-        var movieIdDarkKnightRises = 102;
-
-        StepVerifier.create(movieInfoService.movieInfo(movieIdDarkKnightRises))
+        StepVerifier.create(movieInfoService.movieInfo(102))
                 .expectNext(MovieInfoService.movieInfos.getLast())
                 .verifyComplete();
     }
@@ -40,9 +38,7 @@ class MovieInfoServiceTest {
     @Test
     @DisplayName("Should deliver an empty Mono when movie info does NOT exist")
     void shouldDeliverEmptyMono() {
-        var movieIdWhichDoesNotExist = 452;
-
-        StepVerifier.create(movieInfoService.movieInfo(movieIdWhichDoesNotExist))
+        StepVerifier.create(movieInfoService.movieInfo(452))
                 .verifyComplete();
     }
 }

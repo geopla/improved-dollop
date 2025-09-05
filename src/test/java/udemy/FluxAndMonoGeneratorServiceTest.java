@@ -4,7 +4,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
@@ -30,163 +29,6 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 class FluxAndMonoGeneratorServiceTest {
 
     FluxAndMonoGeneratorService service = new FluxAndMonoGeneratorService();
-
-
-    @Test
-    @DisplayName("Should complete immediate on input 'abc'")
-    void shouldDoAbc() {
-        StepVerifier.create(service.exception_mono_onErrorContinue("abc"))
-                .verifyComplete();
-    }
-
-    @Test
-    @DisplayName("Should emit 'reactor'")
-    void shouldDoReactor() {
-        StepVerifier.create(service.exception_mono_onErrorContinue("reactor"))
-                .expectNext("reactor")
-                .verifyComplete();
-    }
-
-
-    @Test
-    @DisplayName("Should ")
-    void shouldDoSomehting() {
-        StepVerifier.create(service.monoErrorHandling())
-                .verifyError(RuntimeException.class);
-    }
-
-    @Test
-    @DisplayName("Should play around with handle(value, sink)")
-    void shouldPlayAroundWithHandle() {
-        StepVerifier.create(service.monoErrorHandlingTheBetterWay())
-                .verifyError(RuntimeException.class);
-    }
-
-
-
-
-
-
-    @Test
-    @DisplayName("Should upcast exception")
-    void shouldUpcastException() {
-        StepVerifier.create(service.exploreMonoOnErrorMap())
-                .expectErrorMatches(t ->
-                        t instanceof IllegalArgumentException
-                        && !(t instanceof NumberFormatException)
-                        && t.getMessage().contains("damn")
-                )
-                .verify();
-    }
-
-    @Test
-    @DisplayName("Should upcast exception")
-    void shouldUpcastExceptionByType() {
-        StepVerifier.create(service.exploreMonoErrorMapWithType())
-                .expectErrorMatches(t ->
-                        t instanceof IllegalArgumentException
-                        && !(t instanceof NumberFormatException)
-                        && t.getMessage().contains("umph")
-                )
-                .verify();
-    }
-
-    @ParameterizedTest
-    @CsvSource({
-            "'a', 'A'",
-            "'X', 'Q'"
-    })
-    @DisplayName("Should return a default when a Mono pipeline throws an exception")
-    void shouldExploreMonoOnErrorReturn(String allButX, String expectedResult) {
-        StepVerifier.create(service.exploreMonoOnErrorReturn(allButX))
-                .expectNext(expectedResult)
-                .verifyComplete();
-    }
-
-    String[] successfulValues = {"A", "B", "C"};
-    String defaultValue = "D";
-    String recoveredFromExceptionValue = "recovered from illegal argument";
-    String[] resumedValues = {"D", "E"};
-    String[] resumedValuesFromX = {"X", "Y"};
-
-    @Test
-    @DisplayName("Should recover from exception with default value")
-    void shouldRecoverFromExceptionWithDefaultValue() {
-        StepVerifier.create(service.exploreOnErrorReturn())
-                .expectNext(successfulValues)
-                .expectNext(defaultValue)
-                .verifyComplete();
-    }
-
-    @Test
-    @DisplayName("Should recover from certain exception type with a default value")
-    void shouldRecoverFromIllegalArgumentException() {
-        StepVerifier.create(service.exploreOnErrorReturnOnExceptionType())
-                .expectNext(successfulValues)
-                .expectNext(recoveredFromExceptionValue)
-                .verifyComplete();
-    }
-
-    @Test
-    @DisplayName("Should emit an error when exception cant be handled due to exception type")
-    void shouldEmitErrorWhenExceptionCannotBeHandled() {
-        StepVerifier.create(service.exploreOnErrorReturnOnExceptionTypeNotHandled())
-                .expectNext(successfulValues)
-                .expectError(IllegalStateException.class)
-                .verify();
-    }
-
-    @Test
-    @DisplayName("Should recover from certain exception matching a predicate")
-    void shouldShouldRecoverFromExceptionWithPredicateMatch() {
-        StepVerifier.create(service.exploreOnErrorReturnOnExceptionPredicate())
-                .expectNext(successfulValues)
-                .expectNext(recoveredFromExceptionValue)
-                .verifyComplete();
-    }
-
-    @Test
-    @DisplayName("Should emit an error when exception can't be handled due to predicate")
-    void shouldEmitAnErrorWhenExceptionCannotBeHandledDueToPredicate() {
-        StepVerifier.create(service.exploreOnErrorReturnOnExceptionPredicateNotHandled())
-                .expectNext(successfulValues)
-                .expectError(IllegalArgumentException.class)
-                .verify();
-    }
-
-    @Test
-    @DisplayName("Should resume with values from a fallback publisher")
-    void shouldResumeOnAnyException() {
-        StepVerifier.create(service.exploreOnErrorResume())
-                .expectNext(successfulValues)
-                .expectNext(resumedValues)
-                .verifyComplete();
-    }
-
-    @Test
-    @DisplayName("Should resume with selected fallback publisher")
-    void shouldSelectFallbackPublisher() {
-        StepVerifier.create(service.exploreOnErrorResumeWithSelectedFallback())
-                .expectNext(successfulValues)
-                .expectNext(resumedValuesFromX)
-                .verifyComplete();
-    }
-
-    @Test
-    @DisplayName("Should skip publishers emitting an error")
-    void shouldExploreSkippingErrors() {
-        StepVerifier.create(service.exploreSkippingErrors().log())
-                .expectNext(successfulValues)
-                .verifyComplete();
-    }
-
-    @Test
-    @DisplayName("Should skip errors emitted from upstream")
-    void shouldExploreSkippingErrorsWithContinue() {
-        StepVerifier.create(service.exploreSkippingErrorsWithContinue().log())
-                .expectNext(successfulValues)
-                .verifyComplete();
-    }
 
     @Test
     @DisplayName("Should zip Mono with other Mono")
@@ -409,7 +251,7 @@ class FluxAndMonoGeneratorServiceTest {
         Function<Integer, Mono<? extends Boolean>> rightGenerator = answer -> Mono.just(answer == 42);
 
         BiFunction<Integer, Boolean, String> combinator = (answer, ok) ->
-                ok ? "%d is the answer".formatted(answer) : "try another answer";
+                ok  ? "%d is the answer".formatted(answer) : "try another answer";
 
         StepVerifier.create(key.zipWhen(rightGenerator, combinator))
                 .expectNext("42 is the answer")

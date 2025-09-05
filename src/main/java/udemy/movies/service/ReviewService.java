@@ -1,7 +1,6 @@
 package udemy.movies.service;
 
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 import udemy.movies.domain.Review;
 
 import java.util.List;
@@ -21,9 +20,5 @@ public class ReviewService {
         return Flux.fromIterable(reviews.stream()
                 .filter(review -> review.movieInfoId() == movieId)
                 .toList());
-    }
-
-    public Mono<List<Review>> allReviews(long movieId) {
-        return reviews(movieId).collectList();
     }
 }
