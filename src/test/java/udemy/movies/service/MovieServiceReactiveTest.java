@@ -130,7 +130,7 @@ class MovieServiceReactiveTest {
     }
 
     @Test
-    @DisplayName("Should deliver a movie with revenue")
+    @DisplayName("Should deliver a movie with revenue retrieved asynchronously")
     void shouldDeliverMovieWithRevenue() {
         var movieIdTheDarkKnight = 101;
         var expectedRevenue = new Revenue(101, 1_000_000, 5_000_000);
@@ -139,6 +139,20 @@ class MovieServiceReactiveTest {
                 .expectNextMatches(movie ->
                         movie.info().name().equals("The Dark Knight")
                     && movie.revenue().equals(expectedRevenue)
+                )
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Should deliver a movie with revenue retrieved from blocking service")
+    void shouldDeliverMovieWithRevenueFromBlockingService() {
+        var movieIdTheDarkKnight = 101;
+        var expectedRevenue = new Revenue(101, 1_000_000, 5_000_000);
+
+        StepVerifier.create(movieService.movieByIdWithRevenueFromBlockingService(movieIdTheDarkKnight))
+                .expectNextMatches(movie ->
+                        movie.info().name().equals("The Dark Knight")
+                        && movie.revenue().equals(expectedRevenue)
                 )
                 .verifyComplete();
     }

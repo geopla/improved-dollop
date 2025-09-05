@@ -71,6 +71,16 @@ public class MovieServiceReactive {
                 });
     }
 
+    public Mono<Movie> movieByIdWithRevenueFromBlockingService(long id) {
+        return movieInfoService.movieInfo(id)
+                .flatMap(movieInfo -> {
+                    Mono<List<Review>> reviewsMono = reviewService.allReviews(id);
+                    Mono<Revenue> revenueMono = Mono.fromCallable(() -> revenueService.revenue(id));
+
+                    return reviewsMono.zipWith(revenueMono, toMovieWithRevenue(movieInfo));
+                });
+    }
+
     static BiFunction<List<Review>, Revenue, Movie> toMovieWithRevenue(MovieInfo movieInfo) {
         return ((reviewList, revenue) -> new Movie(movieInfo, reviewList, revenue));
     }
